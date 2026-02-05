@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: db
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: design_app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cutenetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d design_app_db"] 
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fastapi:
+    container_name: web_app
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - connection_string=${connection_string}
+      - ENV=production
+    depends_on:
+      db: 
+        condition: service_healthy 
+    networks:
+      - cutenetwork
+    restart: on-failure:1
+
+
+  permitio:
+    container_name: permit_pdp
+    image: permitio/pdp-v2:latest
+    restart: always
+    environment:
+      - PDP_DEBUG=True
+      - PDP_API_KEY=${permit_api_key} 
+      - OPAL_SPLIT_ROOT_DATA=1
+    ports:
+      - "7766:7000" 
+      - "8181:8181" # Management API
+    networks:
+      - cutenetwork
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s 
+
+
+volumes:
+  postgres_data:
+
+networks:
+  cutenetwork:
+    driver: bridge
+
+
+

@@ -1,0 +1,55 @@
+# from fastapi.responses import JSONResponse
+# import httpx
+# from fastapi import APIRouter, Depends
+# from sqlalchemy import select
+# from app.database.models import User
+# from app.database.database import get_db_session
+
+# router = APIRouter(
+#     prefix="/opal",
+#     tags=["opal"]
+# )
+
+# @router.get("/status")
+# async def opal_status():
+#     try:
+#         async with httpx.AsyncClient() as client:
+#             response = await client.get("http://permit_pdp:7000/opal/clients/state")
+#             response.raise_for_status()
+#             return JSONResponse(content=response.json())
+#     except Exception as e:
+#         return JSONResponse(status_code=500, content={"error": str(e)})
+    
+
+# @router.post("/trigger-fetch")
+# async def trigger_user_data_fetch():
+#     try:
+#         async with httpx.AsyncClient() as client:
+#             response = await client.post("http://permit_pdp:7000/opal/publish/data/users")
+#             response.raise_for_status()
+#             return {"status": "triggered", "details": response.text}
+#     except Exception as e:
+#         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# @router.get("/attributes", tags=["opal"])
+# async def get_users_for_opal(db_session=Depends(get_db_session)):
+#     result = await db_session.execute(select(User))
+#     users = result.scalars().all()
+    
+#     return [
+#         {
+#             "key": user.email,
+#             "attributes": {
+#                 "country": user.country,
+#                 "organisation": user.organisation,
+#                 "position": user.position,
+#                 "authority": user.authority,
+#                 "ssm_functions": user.SSM_functions,
+#                 "ssm_member": user.isSSM,
+#                 "org_unit_level_a": user.org_unit_level_a,
+#                 "team": user.team
+#             }
+#         }
+#         for user in users
+#     ]
